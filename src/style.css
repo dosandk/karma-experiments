@@ -1,0 +1,39 @@
+#image-full {
+    margin: 15px;
+    float: left;
+}
+
+#field {
+    display: grid;
+    grid-template-columns: repeat(4, 100px);
+    grid-template-rows: repeat(4, 100px);
+    margin: 13px;
+    float: left;
+    border: 2px green groove;
+    width: 400px;
+    height: 400px;
+}
+
+#image-sliced {
+    position: absolute;
+    margin: 15px;
+    bottom: 0px;
+    max-width: 100%;
+}
+
+.img-cell {
+    display: block;
+    width: 100px;
+    height: 100px;
+    background: url(../src/hogwarts.jpg) no-repeat;
+    background-size: 400%;
+}
+
+.draggable {
+    /* transition: transform .3s linear; */
+    display: inline-block;
+}
+
+.draggable > .img-cell {
+    cursor: pointer;
+}

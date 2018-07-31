@@ -1,64 +1,17 @@
 "use strict";
 
-function createTiles(rows, cols) {
-  let shiftX = 100 / (cols - 1);
-  let shiftY = 100 / (rows - 1);
+import { createTiles, puzzlesData } from '../src/createTiles';
+import { shuffleTiles } from '../src/shuffleTiles';
+import { insertTiles } from '../src/insertTiles';
 
-  for (let x = 0; x < rows; x++) {
-    for (let y = 0; y < cols; y++) {
-      let tile = {};
-      tile.id = x * cols + y;
-      let degree = Math.floor(Math.random() * 4) * 90;
-      tile.img = `<div class="draggable" style="transform: rotate(${degree}deg);">
-        <span class="img-cell" id="${tile.id}" style="background-position: ${y*shiftX}% ${x*shiftY}%;
-        grid-row: ${x+1}/${x+2}; grid-column: ${y+1}/${y+2};"></span>
-      </div>`;
-      puzzlesData[tile.id] = {};
-      puzzlesData[tile.id].row = x;
-      puzzlesData[tile.id].col = y;
-      puzzlesData[tile.id].coords = [{}, {}, {}, {}];
-      puzzlesData[tile.id].rotation = degree;
-      puzzlesData[tile.id].neighbourLeft = y !== 0 ? tile.id - 1 : "none";
-      puzzlesData[tile.id].neighbourRight = y !== cols - 1 ? tile.id + 1 : "none";
-      puzzlesData[tile.id].neighbourTop = x !== 0 ? tile.id - cols : "none";
-      puzzlesData[tile.id].neighbourBottom = x !== rows - 1 ? tile.id + cols : "none";
-
-      tilesArr.push(tile);
-    }
-  }
-}
-
-function shuffleTiles(array) {
-  let currentIndex = array.length,
-    temporaryValue,
-    randomIndex;
-
-  while (currentIndex !== 0) {
-    randomIndex = Math.floor(Math.random() * currentIndex);
-    currentIndex -= 1;
-
-    temporaryValue = array[currentIndex];
-    array[currentIndex] = array[randomIndex];
-    array[randomIndex] = temporaryValue;
-  }
-}
-
-function insertTiles(array) {
-  try {
-    const container = document.getElementById('image-sliced');
-
-    for (let tile of array) {
-      container.insertAdjacentHTML('beforeend', tile.img);
-    }
-  } catch ({message}) {
-    console.error('Super error!', message);
-  }
-}
+const tiles = createTiles(4, 4);
+const shuffledTiles = shuffleTiles(tiles);
+insertTiles(shuffledTiles);
 
 document.addEventListener('mousedown', function(event) {
 
   if (event.target.className !== 'img-cell') return;
-  let dragElement = event.target.closest('.draggable');
+  const dragElement = event.target.closest('.draggable');
   if (!dragElement) return;
 
   event.preventDefault();
@@ -84,7 +37,7 @@ document.addEventListener('mousedown', function(event) {
 
   document.addEventListener('mousemove', onMouseMove);
 
-  dragElement.onmouseup = function() {
+  dragElement.addEventListener('mouseup', function() {
     document.removeEventListener('mousemove', onMouseMove);
     dragElement.onmouseup = null;
     //
@@ -92,7 +45,7 @@ document.addEventListener('mousedown', function(event) {
       startY === event.clientY) onClick();
     updateCoords(dragElement);
     checkPosition();
-  };
+  });
 
   function onMouseMove(event) {
     // Remember initial coordinates
@@ -141,24 +94,19 @@ document.addEventListener('mousedown', function(event) {
         y: parseInt(tileDivCoords.top) + tileDiv.clientHeight
       };
 
-      switch (tile.rotation) {
-        case 0:
-          break;
-        case 270:
-          tile.coords.push(tile.coords.shift());
-        case 180:
-          tile.coords.push(tile.coords.shift());
-        case 90:
-          tile.coords.push(tile.coords.shift());
+      let degree = tile.rotation;
+      while (degree > 0) {
+        tile.coords.push(tile.coords.shift());
+        degree -= 90;
       }
     }
   }
 
   function checkPosition() {
-    let field = document.getElementById('field');
-    let fieldPositionTop = field.offsetTop + field.clientTop + puzzlesData[dragElement.firstElementChild.id].row * 100;
-    let fieldPositionLeft = field.offsetLeft + field.clientLeft + puzzlesData[dragElement.firstElementChild.id].col * 100;
-    let tileCoords = dragElement.firstElementChild.getBoundingClientRect();
+    const field = document.getElementById('field');
+    const fieldPositionTop = field.offsetTop + field.clientTop + puzzlesData[dragElement.firstElementChild.id].row * 100;
+    const fieldPositionLeft = field.offsetLeft + field.clientLeft + puzzlesData[dragElement.firstElementChild.id].col * 100;
+    const tileCoords = dragElement.firstElementChild.getBoundingClientRect();
 
     if (+dragElement.style.transform.replace(/\D+/g, '') === 0 &&
       Math.abs(fieldPositionTop - tileCoords.top) < 3 &&
@@ -234,16 +182,3 @@ document.addEventListener('mousedown', function(event) {
     updateCoords(dragElement);
   }
 });
-
-let tilesArr = [];
-let puzzlesData = [];
-
-createTiles(4, 4);
-shuffleTiles(tilesArr);
-insertTiles(tilesArr);
-
-export {
-  createTiles,
-  shuffleTiles,
-  insertTiles
-};
