@@ -1,8 +1,8 @@
 "use strict";
 
-import { createTiles, puzzlesData } from '../src/createTiles';
-import { shuffleTiles } from '../src/shuffleTiles';
-import { insertTiles } from '../src/insertTiles';
+import { createTiles, puzzlesData } from './src/createTiles';
+import { shuffleTiles } from './src/shuffleTiles';
+import { insertTiles } from './src/insertTiles';
 
 const tiles = createTiles(4, 4);
 const shuffledTiles = shuffleTiles(tiles);

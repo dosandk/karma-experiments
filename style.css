@@ -25,7 +25,7 @@
     display: block;
     width: 100px;
     height: 100px;
-    background: url(../src/hogwarts.jpg) no-repeat;
+    background: url(./img/hogwarts.jpg) no-repeat;
     background-size: 400%;
 }
 

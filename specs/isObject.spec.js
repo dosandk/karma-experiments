@@ -18,5 +18,4 @@ describe('isObject::', () => {
     expect(isObject('string')).toBeFalsy();
     expect(isObject(true)).toBeFalsy();
   });
-
 });

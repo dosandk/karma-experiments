@@ -33,7 +33,21 @@ module.exports = function(config) {
     },
 
     webpack: {
-      mode: 'development'
+      mode: 'development',
+      module: {
+        rules: [
+          // instrument only testing sources with Istanbul
+          {
+            test: /\.js$|\.jsx$/,
+            use: {
+              loader: 'istanbul-instrumenter-loader',
+              options: { esModules: true }
+            },
+            enforce: 'post',
+            exclude: /node_modules|\.spec\.js$/,
+          }
+        ]
+      }
     },
 
     webpackServer: {
@@ -43,8 +57,12 @@ module.exports = function(config) {
     // test results reporter to use
     // possible values: 'dots', 'progress'
     // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-    reporters: ['progress'],
+    reporters: ['coverage-istanbul'],
 
+    coverageIstanbulReporter: {
+      // reports can be any that are listed here: https://github.com/istanbuljs/istanbuljs/tree/aae256fb8b9a3d19414dcf069c592e88712c32c6/packages/istanbul-reports/lib
+      reports: ['html', 'lcovonly', 'text-summary'],
+    },
 
     // web server port
     port: 9876,
