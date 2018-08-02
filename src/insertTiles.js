@@ -1,5 +1,7 @@
 export function insertTiles(array, container) {
+  let insertHtml = '';
   for (let tile of array) {
-    container.insertAdjacentHTML('beforeend', tile.img);
+    insertHtml += tile.img;
   }
+  container.insertAdjacentHTML('beforeend', insertHtml);
 }
