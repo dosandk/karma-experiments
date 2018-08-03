@@ -3,10 +3,13 @@
 import {createTiles} from './src/createTiles.js';
 import {shuffleTiles} from './src/shuffleTiles.js';
 import {insertTiles} from './src/insertTiles.js';
+import {updateCoords} from './src/updateCoords.js';
+import {checkPosition} from './src/checkPosition.js';
+
+export let puzzlesData;
 
 const game = {
   initialize: function () {
-    let puzzlesData;
     const imgData = {};
     const preview = document.getElementById('preview');
     const file = document.getElementById('file');
@@ -16,14 +19,20 @@ const game = {
         const image = new Image();
 
         image.addEventListener('load', function () {
-          imgData.width = this.width;
-          imgData.height = this.height;
+          imgData.width = image.width;
+          imgData.height = image.height;
         });
 
         imgData.url = URL.createObjectURL(file.files[0]);
         image.src = imgData.url;
         preview.style.backgroundImage = `url(${imgData.url})`;
       }
+    });
+
+    const hint = document.getElementById('hint');
+    hint.addEventListener('click', function(){
+      console.log('click');
+      preview.classList.toggle('show');
     });
 
     function clearField() {
@@ -81,9 +90,9 @@ const game = {
         dragElement.removeEventListener('mouseup', onMouseUp);
         // If position didn't change, treat is as a click
         if (startX === event.clientX &&
-          startY === event.clientY) onClick();
+          startY === event.clientY) onClick(dragElement);
         updateCoords(dragElement);
-        checkPosition();
+        checkPosition(dragElement);
       }
 
       function onMouseMove(event) {
@@ -99,126 +108,7 @@ const game = {
         dragElement.style.left = parseInt(dragElement.style.left) + diffX + 'px';
         dragElement.style.top = parseInt(dragElement.style.top) + diffY + 'px';
       }
-
-      function onClick() {
-        // Rotate element by 90 degrees clockwise
-        let degree = +dragElement.style.transform.replace(/\D+/g, '') + 90;
-        if (degree === 360) degree = 0;
-        dragElement.style.transform = `rotate(${degree}deg)`;
-
-        for (let child of dragElement.children) {
-          puzzlesData[child.id].rotation = degree;
-        }
-      }
-
-      function updateCoords(element) {
-        for (let child of element.children) {
-          const tile = puzzlesData[child.id];
-          const tileDiv = document.getElementById(`${child.id}`);
-          const {left, top} = tileDiv.getBoundingClientRect();
-          tile.coords[0] = {
-            x: left,
-            y: top
-          };
-          tile.coords[1] = {
-            x: left + tileDiv.clientWidth,
-            y: top
-          };
-          tile.coords[2] = {
-            x: left + tileDiv.clientWidth,
-            y: top + tileDiv.clientHeight
-          };
-          tile.coords[3] = {
-            x: left,
-            y: top + tileDiv.clientHeight
-          };
-
-          let degree = tile.rotation;
-          while (degree > 0) {
-            tile.coords.push(tile.coords.shift());
-            degree -= 90;
-          }
-        }
-      }
-
-      function checkPosition() {
-        const field = document.getElementById('field');
-        const tile = puzzlesData[dragElement.firstElementChild.id];
-        const tilePositionTop = field.offsetTop + field.clientTop + tile.row * 100;
-        const tilePositionLeft = field.offsetLeft + field.clientLeft + tile.col * 100;
-        const tileCoords = dragElement.firstElementChild.getBoundingClientRect();
-
-        if (+dragElement.style.transform.replace(/\D+/g, '') === 0 &&
-          Math.abs(tilePositionTop - tileCoords.top) < 3 &&
-          Math.abs(tilePositionLeft - tileCoords.left) < 3) {
-          field.append(...dragElement.children);
-          dragElement.remove();
-          updateCoords(field);
-          return;
-        }
-
-        checkNeighbours();
-      }
-
-      function checkNeighbours() {
-        const divsToMerge = [];
-        for (let child of dragElement.children) {
-          const tile = puzzlesData[child.id];
-
-          if (checkCorners(tile, 0, tile.neighbourLeft, 1)) {
-            addDivToMerge(divsToMerge, tile.neighbourLeft);
-            puzzlesData[tile.neighbourLeft].neighbourRight = "none";
-            tile.neighbourLeft = "none";
-          }
-
-          if (checkCorners(tile, 2, tile.neighbourRight, 3)) {
-            addDivToMerge(divsToMerge, tile.neighbourRight);
-            puzzlesData[tile.neighbourRight].neighbourLeft = "none";
-            tile.neighbourRight = "none";
-          }
-
-          if (checkCorners(tile, 0, tile.neighbourTop, 3)) {
-            addDivToMerge(divsToMerge, tile.neighbourTop);
-            puzzlesData[tile.neighbourTop].neighbourBottom = "none";
-            tile.neighbourTop = "none";
-          }
-
-          if (checkCorners(tile, 2, tile.neighbourBottom, 1)) {
-            addDivToMerge(divsToMerge, tile.neighbourBottom);
-            puzzlesData[tile.neighbourBottom].neighbourTop = "none";
-            tile.neighbourBottom = "none";
-          }
-        }
-
-        if (divsToMerge.length !== 0) combineCells(divsToMerge);
-      }
-
-      function checkCorners (tile, corner1, neighbour, corner2){
-        return neighbour !== "none" &&
-          Math.abs(tile.coords[corner1].x - puzzlesData[neighbour].coords[corner2].x) < 3 &&
-          Math.abs(tile.coords[corner1].y - puzzlesData[neighbour].coords[corner2].y) < 3 &&
-          tile.rotation === puzzlesData[neighbour].rotation;
-      }
-
-      function addDivToMerge(divsToMerge, neighbour) {
-        const neighbourDiv = document.getElementById(neighbour).parentNode;
-        if (!divsToMerge.includes(neighbourDiv)) divsToMerge.push(neighbourDiv);
-        return divsToMerge;
-      }
-
-      function combineCells(divsToMerge) {
-        for (let div of divsToMerge) {
-          const newX = Math.min(parseInt(dragElement.style.left), parseInt(div.style.left));
-          const newY = Math.min(parseInt(dragElement.style.top), parseInt(div.style.top));
-          dragElement.append(...div.children);
-          dragElement.style.left = newX + "px";
-          dragElement.style.top = newY + "px";
-          div.remove();
-        }
-        updateCoords(dragElement);
-      }
     });
-
 
 
     document.addEventListener('touchstart', function (event) {
@@ -257,7 +147,7 @@ const game = {
         document.removeEventListener('touchmove', onMouseMove);
         dragElement.removeEventListener('touchend', onMouseUp);
         updateCoords(dragElement);
-        checkPosition();
+        checkPosition(dragElement);
       }
 
       function onMouseMove(event) {
@@ -273,116 +163,21 @@ const game = {
         dragElement.style.left = parseInt(dragElement.style.left) + diffX + 'px';
         dragElement.style.top = parseInt(dragElement.style.top) + diffY + 'px';
       }
-
-      function updateCoords(element) {
-        for (let child of element.children) {
-          const tile = puzzlesData[child.id];
-          const tileDiv = document.getElementById(`${child.id}`);
-          const {left, top} = tileDiv.getBoundingClientRect();
-          tile.coords[0] = {
-            x: left,
-            y: top
-          };
-          tile.coords[1] = {
-            x: left + tileDiv.clientWidth,
-            y: top
-          };
-          tile.coords[2] = {
-            x: left + tileDiv.clientWidth,
-            y: top + tileDiv.clientHeight
-          };
-          tile.coords[3] = {
-            x: left,
-            y: top + tileDiv.clientHeight
-          };
-
-          let degree = tile.rotation;
-          while (degree > 0) {
-            tile.coords.push(tile.coords.shift());
-            degree -= 90;
-          }
-        }
-      }
-
-      function checkPosition() {
-        const field = document.getElementById('field');
-        const tile = puzzlesData[dragElement.firstElementChild.id];
-        const tilePositionTop = field.offsetTop + field.clientTop + tile.row * 100;
-        const tilePositionLeft = field.offsetLeft + field.clientLeft + tile.col * 100;
-        const tileCoords = dragElement.firstElementChild.getBoundingClientRect();
-
-        if (+dragElement.style.transform.replace(/\D+/g, '') === 0 &&
-          Math.abs(tilePositionTop - tileCoords.top) < 3 &&
-          Math.abs(tilePositionLeft - tileCoords.left) < 3) {
-          field.append(...dragElement.children);
-          dragElement.remove();
-          updateCoords(field);
-          return;
-        }
-
-        checkNeighbours();
-      }
-
-      function checkNeighbours() {
-        const divsToMerge = [];
-        for (let child of dragElement.children) {
-          const tile = puzzlesData[child.id];
-
-          if (checkCorners(tile, 0, tile.neighbourLeft, 1)) {
-            addDivToMerge(divsToMerge, tile.neighbourLeft);
-            puzzlesData[tile.neighbourLeft].neighbourRight = "none";
-            tile.neighbourLeft = "none";
-          }
-
-          if (checkCorners(tile, 2, tile.neighbourRight, 3)) {
-            addDivToMerge(divsToMerge, tile.neighbourRight);
-            puzzlesData[tile.neighbourRight].neighbourLeft = "none";
-            tile.neighbourRight = "none";
-          }
-
-          if (checkCorners(tile, 0, tile.neighbourTop, 3)) {
-            addDivToMerge(divsToMerge, tile.neighbourTop);
-            puzzlesData[tile.neighbourTop].neighbourBottom = "none";
-            tile.neighbourTop = "none";
-          }
-
-          if (checkCorners(tile, 2, tile.neighbourBottom, 1)) {
-            addDivToMerge(divsToMerge, tile.neighbourBottom);
-            puzzlesData[tile.neighbourBottom].neighbourTop = "none";
-            tile.neighbourBottom = "none";
-          }
-        }
-
-        if (divsToMerge.length !== 0) combineCells(divsToMerge);
-      }
-
-      function checkCorners (tile, corner1, neighbour, corner2){
-        return neighbour !== "none" &&
-          Math.abs(tile.coords[corner1].x - puzzlesData[neighbour].coords[corner2].x) < 3 &&
-          Math.abs(tile.coords[corner1].y - puzzlesData[neighbour].coords[corner2].y) < 3 &&
-          tile.rotation === puzzlesData[neighbour].rotation;
-      }
-
-      function addDivToMerge(divsToMerge, neighbour) {
-        const neighbourDiv = document.getElementById(neighbour).parentNode;
-        if (!divsToMerge.includes(neighbourDiv)) divsToMerge.push(neighbourDiv);
-        return divsToMerge;
-      }
-
-      function combineCells(divsToMerge) {
-        for (let div of divsToMerge) {
-          const newX = Math.min(parseInt(dragElement.style.left), parseInt(div.style.left));
-          const newY = Math.min(parseInt(dragElement.style.top), parseInt(div.style.top));
-          dragElement.append(...div.children);
-          dragElement.style.left = newX + "px";
-          dragElement.style.top = newY + "px";
-          div.remove();
-        }
-        updateCoords(dragElement);
-      }
     });
 
   }
 };
+
+
+function onClick(dragElement) {
+  // Rotate element by 90 degrees clockwise
+  let degree = +dragElement.style.transform.replace(/\D+/g, '') + 90;
+  if (degree === 360) degree = 0;
+  dragElement.style.transform = `rotate(${degree}deg)`;
+
+  for (let child of dragElement.children) {
+    puzzlesData[child.id].rotation = degree;
+  }
+}
 
 export default game;
