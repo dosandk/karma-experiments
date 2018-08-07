@@ -1,7 +1,12 @@
 import {createTiles} from '../src/createTiles';
 
 describe('createTiles()', () => {
-  const tiles = createTiles(4, 5);
+  const img = {
+    width: 1200,
+    height: 1600,
+    url: "://some-string"
+  };
+  const tiles = createTiles(4, 5, img);
   it('puzzle of 4 rows and 5 cols should return array of length 20', () => {
     expect(tiles.length).toEqual(20);
   });
@@ -22,9 +27,4 @@ describe('createTiles()', () => {
       expect([0, 90, 180, 270]).toContain(tile.rotation);
     }
   });
-});
-describe('createImg()', () => {
-/*  it('', () => {
-    expect(createImg(5, 5, , x, y, degree)).toEqual();
-  });*/
 });

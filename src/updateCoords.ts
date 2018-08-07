@@ -1,7 +1,7 @@
-import {puzzlesData} from '../puzzle-game.js';
+import {puzzlesData} from './puzzle-game';
 
-export function updateCoords(element) {
-  for (let child of element.children) {
+export function updateCoords(element: HTMLElement) : void {
+  for (let child of [].slice.call(element.children)) {
     const tile = puzzlesData[child.id];
     const tileDiv = document.getElementById(`${child.id}`);
     const {left, top} = tileDiv.getBoundingClientRect();

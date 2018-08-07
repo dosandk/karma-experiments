@@ -1,4 +1,6 @@
-function createImg(rows, cols, id, x, y, degree, img) {
+import {imgDataModel, puzzlesDataModel} from './puzzle-game';
+
+function createImg(rows: number, cols: number, id: number, x: number, y: number, degree: number, img: imgDataModel) {
   let coef = 1;
   if (img.width > img.height) {
     coef = img.width / img.height;
@@ -12,22 +14,22 @@ function createImg(rows, cols, id, x, y, degree, img) {
         </div>`;
 }
 
-function createTiles(rows, cols, img) {
+function createTiles(rows: number, cols: number, img: imgDataModel) {
   const result = [];
   let id = 0;
 
   for (let x = 0; x < rows; x++) {
     for (let y = 0; y < cols; y++) {
       const degree = Math.floor(Math.random() * 4) * 90;
-      const tile = {
+      const tile: puzzlesDataModel = {
         row: x,
         col: y,
-        coords: [{}, {}, {}, {}],
+        coords: [{x: undefined, y: undefined}, {x: undefined, y: undefined}, {x: undefined, y: undefined}, {x: undefined, y: undefined}],
         rotation: degree,
-        neighbourLeft: y !== 0 ? id - 1 : "none",
-        neighbourRight: y !== cols - 1 ? id + 1 : "none",
-        neighbourTop: x !== 0 ? id - cols : "none",
-        neighbourBottom: x !== rows - 1 ? id + cols : "none",
+        neighbourLeft: y !== 0 ? id - 1 : -1,
+        neighbourRight: y !== cols - 1 ? id + 1 : -1,
+        neighbourTop: x !== 0 ? id - cols : -1,
+        neighbourBottom: x !== rows - 1 ? id + cols : -1,
         img: createImg(rows, cols, id, x, y, degree, img),
       };
       id++;
