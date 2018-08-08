@@ -44,22 +44,33 @@ function clearField() {
   }
 }
 
-file.addEventListener('change', function() {
-  if (file.files[0]) {
-    clearField();
-
+function uploadImageData(url: string) {
     const image = new Image();
 
     image.addEventListener('load', function () {
-      imgData.width = image.width;
-      imgData.height = image.height;
+        imgData.width = image.width;
+        imgData.height = image.height;
     });
 
-    imgData.url = URL.createObjectURL(file.files[0]);
-    image.src = imgData.url;
-    preview.style.backgroundImage = `url(${imgData.url})`;
+    imgData.url = url;
+    image.src = url;
+    preview.style.backgroundImage = `url(${url})`;
     preview.classList.add('show');
+}
+
+file.addEventListener('change', function() {
+  if (file.files[0]) {
+    clearField();
+    uploadImageData(URL.createObjectURL(file.files[0]));
   }
+});
+
+const select: HTMLSelectElement = document.querySelector('#list');
+uploadImageData(select.value);
+
+select.addEventListener('change', function() {
+    clearField();
+    uploadImageData(select.value);
 });
 
 const hint = document.getElementById('hint');

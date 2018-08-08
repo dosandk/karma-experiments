@@ -1,6 +1,16 @@
 #upload {
-    margin: 13px;
+    margin: 5px 13px;
     grid-area: upload;
+}
+
+#choose {
+    margin: 5px 13px;
+    grid-area: choose;
+}
+
+#start-button {
+    margin: auto 13px;
+    grid-area: start;
 }
 
 .preview {
@@ -62,7 +72,9 @@
     margin: auto;
     grid-template-columns: 1fr;
     grid-template-areas:
+            "choose"
             "upload"
+            "start"
             "field"
             "sliced";
 }
@@ -71,7 +83,8 @@
     #grid {
         grid-template-columns: 1fr 1fr;
         grid-template-areas:
-                "upload ."
+                "choose start"
+                "upload start"
                 "preview field"
                 "sliced sliced";
     }
